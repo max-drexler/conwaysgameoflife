@@ -15,6 +15,10 @@ import javafx.util.Pair;
  * Any dead cell with three live neighbors becomes a live cell.
  * All other live cells die in the next generation. Similarly, all other dead cells stay dead
  */
+/**
+ * @author Max Drexler
+ *
+ */
 public class Simulator {
 	private int num_squares = 10;
 	private Canvas canvas;
@@ -36,7 +40,7 @@ public class Simulator {
 	}
 
 	public void startSimulation(int speed) {
-
+		
 	}
 
 	private int calculateNeighbors(int x, int y) {
@@ -54,6 +58,7 @@ public class Simulator {
 		return count;
 	}
 
+	
 	public void nextStep() {
 		ArrayList<Pair<Integer, Integer>> list = new ArrayList<>();
 		for (int x = 0; x < board.length; x++) {

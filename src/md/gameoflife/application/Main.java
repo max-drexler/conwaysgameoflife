@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
 	public static final int WIDTH = 720;
 	public static final int HEIGHT = 406;
+	private Simulator graphics = new Simulator();
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -27,13 +28,15 @@ public class Main extends Application {
 		Button start = new Button("Start");
 		Button stop = new Button("Stop");
 		Button next = new Button("Step");
+		Button reset = new Button("Reset");
 		VBox vbox = new VBox();
-		Simulator graphics = new Simulator();
+
 		Slider zoom = new Slider(.1, 10, 1);
 		zoom.setMajorTickUnit(10);
 		zoom.setMinorTickCount(2);
 		zoom.setSnapToTicks(true);
 
+		hbox.getChildren().add(reset);
 		hbox.getChildren().add(next);
 		hbox.getChildren().add(start);
 		hbox.getChildren().add(stop);
@@ -48,6 +51,9 @@ public class Main extends Application {
 		primaryStage.setResizable(false);
 		primaryStage.getIcons().add(new Image("conwaygameoflifeicon.png"));
 
+		reset.setOnMouseClicked((MouseEvent e) -> {
+			this.graphics = new Simulator();
+		});
 		next.setOnMouseClicked((MouseEvent e) -> {
 			graphics.nextStep();
 		});
