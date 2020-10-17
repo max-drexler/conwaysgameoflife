@@ -2,6 +2,7 @@ package md.gameoflife.application;
 
 import javafx.application.Application;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -18,8 +19,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-	public static final int WIDTH = 720;
-	public static final int HEIGHT = 406;
+	public static final int WIDTH = 340;
+	public static final int HEIGHT = 400;
 	private Simulator graphics = new Simulator();
 
 	@Override
@@ -36,13 +37,11 @@ public class Main extends Application {
 		zoom.setMinorTickCount(2);
 		zoom.setSnapToTicks(true);
 
-		hbox.getChildren().add(reset);
-		hbox.getChildren().add(next);
-		hbox.getChildren().add(start);
-		hbox.getChildren().add(stop);
-		hbox.getChildren().add(zoom);
-		vbox.getChildren().add(graphics.getCavnas());
-		vbox.getChildren().add(hbox);
+		hbox.getChildren().addAll(reset, next, start, stop, zoom);
+		vbox.getChildren().addAll(graphics.getCavnas(), hbox);
+
+		hbox.setAlignment(Pos.BASELINE_CENTER);
+		vbox.setAlignment(Pos.BASELINE_CENTER);
 
 		Scene scene = new Scene(vbox, WIDTH, HEIGHT, Color.BLACK);
 		primaryStage.setTitle("Conway's Game of Life");
@@ -52,6 +51,8 @@ public class Main extends Application {
 		primaryStage.getIcons().add(new Image("conwaygameoflifeicon.png"));
 
 		reset.setOnMouseClicked((MouseEvent e) -> {
+			this.graphics.getCavnas().getGraphicsContext2D().clearRect(0, 0, this.graphics.getCavnas().getWidth(),
+					this.graphics.getCavnas().getHeight());
 			this.graphics = new Simulator();
 		});
 		next.setOnMouseClicked((MouseEvent e) -> {

@@ -10,6 +10,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.util.Pair;
 
+//TODO:
+/*
+ * Add "infinite" borders
+ * Implement all buttons/sliders
+ * 
+ */
 /*
  * Any live cell with two or three live neighbors survives.
  * Any dead cell with three live neighbors becomes a live cell.
@@ -27,9 +33,10 @@ public class Simulator {
 	private int canvasHeight = 360;
 	private double ratio = (double) canvasWidth / (double) num_squares;
 
-	private boolean[][] board = new boolean[num_squares][num_squares];
+	private boolean[][] board;
 
 	public Simulator() {
+		this.board = new boolean[num_squares][num_squares];
 		this.canvas = new Canvas(canvasWidth, canvasHeight);
 		this.canvas.setOnMouseClicked((MouseEvent e) -> {
 			this.onClick(e.getSceneX(), e.getSceneY());
@@ -40,7 +47,7 @@ public class Simulator {
 	}
 
 	public void startSimulation(int speed) {
-		
+
 	}
 
 	private int calculateNeighbors(int x, int y) {
@@ -58,7 +65,6 @@ public class Simulator {
 		return count;
 	}
 
-	
 	public void nextStep() {
 		ArrayList<Pair<Integer, Integer>> list = new ArrayList<>();
 		for (int x = 0; x < board.length; x++) {
@@ -113,6 +119,7 @@ public class Simulator {
 						canvasHeight / num_squares);
 			}
 		}
+		gc.setFill(Color.BLACK);
 
 		for (int i = 0; i <= this.num_squares; i++) {
 			gc.strokeLine(i * canvasWidth / num_squares, 0, i * canvasWidth / num_squares, canvasHeight);
