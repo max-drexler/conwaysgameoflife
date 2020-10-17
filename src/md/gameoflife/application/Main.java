@@ -19,50 +19,51 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-	public static final int WIDTH = 340;
-	public static final int HEIGHT = 400;
+	public static final int WIDTH = 350;
+	public static final int HEIGHT = 404;
 	private Simulator graphics = new Simulator();
+	private boolean startButtonState = true;
 
 	@Override
 	public void start(Stage primaryStage) {
-		HBox hbox = new HBox(10);
-		Button start = new Button("Start");
-		Button stop = new Button("Stop");
-		Button next = new Button("Step");
-		Button reset = new Button("Reset");
+		HBox bottomButtonBar = new HBox(10);
+		Button startToggleButton = new Button("Start");
+		Button stepButton = new Button("Step");
+		Button resetButton = new Button("Reset");
 		VBox vbox = new VBox();
 
-		Slider zoom = new Slider(.1, 10, 1);
-		zoom.setMajorTickUnit(10);
-		zoom.setMinorTickCount(2);
-		zoom.setSnapToTicks(true);
+		Slider zoomSlider = new Slider(.1, 10, 1);
+		zoomSlider.setMajorTickUnit(10);
+		zoomSlider.setMinorTickCount(2);
+		zoomSlider.setSnapToTicks(true);
 
-		hbox.getChildren().addAll(reset, next, start, stop, zoom);
-		vbox.getChildren().addAll(graphics.getCavnas(), hbox);
+		bottomButtonBar.getChildren().addAll(startToggleButton, stepButton, resetButton, zoomSlider);
+		vbox.getChildren().addAll(graphics.getCavnas(), bottomButtonBar);
 
-		hbox.setAlignment(Pos.BASELINE_CENTER);
+		bottomButtonBar.setAlignment(Pos.BASELINE_CENTER);
 		vbox.setAlignment(Pos.BASELINE_CENTER);
 
-		Scene scene = new Scene(vbox, WIDTH, HEIGHT, Color.BLACK);
+		Scene scene = new Scene(vbox, WIDTH, HEIGHT);
 		primaryStage.setTitle("Conway's Game of Life");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		primaryStage.setResizable(false);
 		primaryStage.getIcons().add(new Image("conwaygameoflifeicon.png"));
 
-		reset.setOnMouseClicked((MouseEvent e) -> {
-			this.graphics.getCavnas().getGraphicsContext2D().clearRect(0, 0, this.graphics.getCavnas().getWidth(),
-					this.graphics.getCavnas().getHeight());
-			this.graphics = new Simulator();
+		resetButton.setOnMouseClicked((MouseEvent e) -> {
+			this.graphics.resetCanvas();
 		});
-		next.setOnMouseClicked((MouseEvent e) -> {
+		stepButton.setOnMouseClicked((MouseEvent e) -> {
 			graphics.nextStep();
 		});
-		zoom.setOnDragOver((DragEvent e) -> {
-			System.out.println(zoom.getValue());
+		zoomSlider.setOnDragOver((DragEvent e) -> {
+			System.out.println(zoomSlider.getValue());
 			// graphics.resizeScreen(zoom.getValue());
 		});
-		start.setOnMouseClicked((MouseEvent e) -> {
+		startToggleButton.setOnMouseClicked((MouseEvent e) -> {
+			startToggleButton.setText(startButtonState ? "Stop" : "Start");
+			startButtonState = !startButtonState;
+
 			graphics.startSimulation(1);
 		});
 	}

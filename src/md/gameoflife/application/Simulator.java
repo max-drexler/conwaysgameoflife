@@ -52,16 +52,16 @@ public class Simulator {
 
 	private int calculateNeighbors(int x, int y) {
 		int count = 0;
-		try {
 			for (int xIndex = x - 1; xIndex <= x + 1; xIndex++) {
 				for (int yIndex = y - 1; yIndex <= y + 1; yIndex++) {
-					if (board[xIndex][yIndex] && !(xIndex == x && yIndex == y))
-						count++;
+					try {
+						if (board[xIndex][yIndex] && !(xIndex == x && yIndex == y))
+							count++;
+					} catch (ArrayIndexOutOfBoundsException e) {
+					}
 				}
 			}
-		} catch (ArrayIndexOutOfBoundsException e) {
 
-		}
 		return count;
 	}
 
@@ -132,5 +132,14 @@ public class Simulator {
 
 	public Canvas getCavnas() {
 		return this.canvas;
+	}
+
+	public void setCanvas(Canvas c) {
+		this.canvas = c;
+	}
+
+	public void resetCanvas() {
+		this.board = new boolean[this.num_squares][this.num_squares];
+		draw();
 	}
 }
