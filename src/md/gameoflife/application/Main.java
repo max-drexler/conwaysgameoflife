@@ -62,9 +62,8 @@ public class Main extends Application {
 		});
 		startToggleButton.setOnMouseClicked((MouseEvent e) -> {
 			startToggleButton.setText(startButtonState ? "Stop" : "Start");
+			graphics.toggleSimulation();
 			startButtonState = !startButtonState;
-
-			graphics.startSimulation(1);
 		});
 	}
 

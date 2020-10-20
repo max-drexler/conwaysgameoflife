@@ -33,11 +33,13 @@ public class Simulator {
 	private int canvasHeight = 360;
 	private double ratio = (double) canvasWidth / (double) num_squares;
 
+	private Thread drawThread;
 	private boolean[][] board;
 
 	public Simulator() {
 		this.board = new boolean[num_squares][num_squares];
 		this.canvas = new Canvas(canvasWidth, canvasHeight);
+		this.drawThread = new Thread(new SimulationThread(this));
 		this.canvas.setOnMouseClicked((MouseEvent e) -> {
 			this.onClick(e.getSceneX(), e.getSceneY());
 		});
@@ -46,21 +48,37 @@ public class Simulator {
 		draw();
 	}
 
-	public void startSimulation(int speed) {
+	public void toggleSimulation() {
+		System.out.println(drawThread.getState());
+		if (drawThread.getState().equals(Thread.State.NEW))
+			drawThread.start();
+		else if (drawThread.getState().equals(Thread.State.RUNNABLE)
+				|| drawThread.getState().equals(Thread.State.TIMED_WAITING)) {
+			synchronized (drawThread) {
+				try {
+					drawThread.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 
+		} else if (drawThread.getState().equals(Thread.State.WAITING))
+			drawThread.notify();
+		else
+			System.out.println(drawThread.getState());
 	}
 
 	private int calculateNeighbors(int x, int y) {
 		int count = 0;
-			for (int xIndex = x - 1; xIndex <= x + 1; xIndex++) {
-				for (int yIndex = y - 1; yIndex <= y + 1; yIndex++) {
-					try {
-						if (board[xIndex][yIndex] && !(xIndex == x && yIndex == y))
-							count++;
-					} catch (ArrayIndexOutOfBoundsException e) {
-					}
+		for (int xIndex = x - 1; xIndex <= x + 1; xIndex++) {
+			for (int yIndex = y - 1; yIndex <= y + 1; yIndex++) {
+				try {
+					if (board[xIndex][yIndex] && !(xIndex == x && yIndex == y))
+						count++;
+				} catch (ArrayIndexOutOfBoundsException e) {
 				}
 			}
+		}
 
 		return count;
 	}
@@ -128,6 +146,10 @@ public class Simulator {
 			gc.strokeLine(0, i * canvasHeight / num_squares, canvasWidth, i * canvasHeight / num_squares);
 		}
 
+	}
+
+	public boolean[][] getBoard() {
+		return this.board;
 	}
 
 	public Canvas getCavnas() {
