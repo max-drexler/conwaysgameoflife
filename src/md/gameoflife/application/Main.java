@@ -19,10 +19,9 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-	public static final int WIDTH = 350;
+	public static final int WIDTH = 780;
 	public static final int HEIGHT = 404;
 	private Simulator graphics = new Simulator();
-	private boolean startButtonState = true;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -47,23 +46,24 @@ public class Main extends Application {
 		primaryStage.setTitle("Conway's Game of Life");
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		primaryStage.setResizable(false);
+		primaryStage.setResizable(true);
 		primaryStage.getIcons().add(new Image("conwaygameoflifeicon.png"));
 
 		resetButton.setOnMouseClicked((MouseEvent e) -> {
 			this.graphics.resetCanvas();
+			
 		});
 		stepButton.setOnMouseClicked((MouseEvent e) -> {
-			graphics.nextStep();
+			this.graphics.nextStep();
 		});
 		zoomSlider.setOnDragOver((DragEvent e) -> {
 			System.out.println(zoomSlider.getValue());
 			// graphics.resizeScreen(zoom.getValue());
 		});
 		startToggleButton.setOnMouseClicked((MouseEvent e) -> {
-			startToggleButton.setText(startButtonState ? "Stop" : "Start");
-			graphics.toggleSimulation();
-			startButtonState = !startButtonState;
+			boolean state = graphics.toggleSimulation();
+			startToggleButton.setText(state ? "Stop" : "Start");
+			stepButton.setDisable(state);
 		});
 	}
 

@@ -1,8 +1,6 @@
 package md.gameoflife.application;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -26,46 +24,53 @@ import javafx.util.Pair;
  *
  */
 public class Simulator {
-	private int num_squares = 10;
+	private int squareWidth = 36;
 	private Canvas canvas;
 	private GraphicsContext gc;
-	private int canvasWidth = 360;
+	private int canvasWidth = 720;
 	private int canvasHeight = 360;
-	private double ratio = (double) canvasWidth / (double) num_squares;
+	private int num_squaresX = this.canvasWidth / this.squareWidth;
+	private int num_squaresY = this.canvasHeight / this.squareWidth;
 
 	private Thread drawThread;
+	private SimulationThread runnable;
 	private boolean[][] board;
 
 	public Simulator() {
-		this.board = new boolean[num_squares][num_squares];
+		this.board = new boolean[num_squaresX][num_squaresY];
 		this.canvas = new Canvas(canvasWidth, canvasHeight);
-		this.drawThread = new Thread(new SimulationThread(this));
+		this.drawThread = new Thread(runnable = new SimulationThread(this));
 		this.canvas.setOnMouseClicked((MouseEvent e) -> {
-			this.onClick(e.getSceneX(), e.getSceneY());
+			this.onClick(e.getX(), e.getY());
 		});
 
 		this.gc = canvas.getGraphicsContext2D();
 		draw();
 	}
 
-	public void toggleSimulation() {
-		System.out.println(drawThread.getState());
-		if (drawThread.getState().equals(Thread.State.NEW))
-			drawThread.start();
-		else if (drawThread.getState().equals(Thread.State.RUNNABLE)
+	public boolean toggleSimulation() {
+		if (drawThread.getState().equals(Thread.State.RUNNABLE)
 				|| drawThread.getState().equals(Thread.State.TIMED_WAITING)) {
 			synchronized (drawThread) {
 				try {
+					this.runnable.stop();
 					drawThread.wait();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+				return false;
 			}
-
-		} else if (drawThread.getState().equals(Thread.State.WAITING))
+		} else if (drawThread.getState().equals(Thread.State.WAITING)) {
 			drawThread.notify();
-		else
-			System.out.println(drawThread.getState());
+			return true;
+		} else if (drawThread.getState().equals(Thread.State.NEW)) {
+			drawThread.start();
+			return true;
+		} else if (drawThread.getState().equals(Thread.State.TERMINATED)) {
+			this.drawThread = new Thread(runnable);
+			return this.toggleSimulation();
+		}
+		return false;
 	}
 
 	private int calculateNeighbors(int x, int y) {
@@ -103,13 +108,17 @@ public class Simulator {
 	}
 
 	public void resizeScreen(double factor) {
-		num_squares = (int) (num_squares / factor);
+		num_squaresX = (int) (num_squaresX / factor);
 		draw();
 	}
 
 	private void onClick(double x, double y) {
-		this.board[(int) (x / ratio)][(int) (y / ratio)] = !this.board[(int) (x / ratio)][(int) (y / ratio)];
-		this.draw((int) (x / ratio), (int) (y / ratio));
+		int screenToBoardX = (int) ((x * (double) this.num_squaresX) / (double) this.canvasWidth);
+		int screenToBoardY = (int) ((y * (double) this.num_squaresY) / (double) this.canvasHeight);
+
+		this.board[screenToBoardX][screenToBoardY] = !this.board[screenToBoardX][screenToBoardY];
+
+		this.draw(screenToBoardX, screenToBoardY);
 	}
 
 	private void draw(int x, int y) {
@@ -118,32 +127,31 @@ public class Simulator {
 			gc.setFill(Color.WHITE);
 		else
 			gc.setFill(Color.SLATEGREY);
-		gc.fillRect(x * this.ratio, y * this.ratio, this.ratio, this.ratio);
+		gc.fillRect(x * this.squareWidth, y * this.squareWidth, this.squareWidth, this.squareWidth);
 		gc.setFill(Color.BLACK);
-		gc.strokeRect(x * this.ratio, y * this.ratio, this.ratio, this.ratio);
+		gc.strokeRect(x * this.squareWidth, y * this.squareWidth, this.squareWidth, this.squareWidth);
 	}
 
 	private void draw() {
 		gc.setLineWidth(2);
-		for (int x = 0; x < board.length; x++) {
-			for (int y = 0; y < board[0].length; y++) {
+		for (int x = 0; x < this.canvasWidth / this.squareWidth; x++) {
+			for (int y = 0; y < this.canvasHeight / this.squareWidth; y++) {
 				if (board[x][y])
 					gc.setFill(Color.WHITE);
 				else {
 					gc.setFill(Color.SLATEGREY);
 
 				}
-				gc.fillRect(x * canvasWidth / num_squares, y * canvasHeight / num_squares, canvasWidth / num_squares,
-						canvasHeight / num_squares);
+				gc.fillRect(x * squareWidth, y * squareWidth, squareWidth, squareWidth);
 			}
 		}
 		gc.setFill(Color.BLACK);
 
-		for (int i = 0; i <= this.num_squares; i++) {
-			gc.strokeLine(i * canvasWidth / num_squares, 0, i * canvasWidth / num_squares, canvasHeight);
+		for (int i = 0; i <= this.num_squaresX; i++) {
+			gc.strokeLine(i * this.squareWidth, 0, i * this.squareWidth, canvasHeight);
 		}
-		for (int i = 0; i <= this.num_squares; i++) {
-			gc.strokeLine(0, i * canvasHeight / num_squares, canvasWidth, i * canvasHeight / num_squares);
+		for (int i = 0; i <= this.num_squaresY; i++) {
+			gc.strokeLine(0, i * squareWidth, canvasWidth, i * squareWidth);
 		}
 
 	}
@@ -161,7 +169,7 @@ public class Simulator {
 	}
 
 	public void resetCanvas() {
-		this.board = new boolean[this.num_squares][this.num_squares];
+		this.board = new boolean[this.num_squaresX][this.num_squaresY];
 		draw();
 	}
 }
