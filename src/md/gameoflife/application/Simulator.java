@@ -24,27 +24,32 @@ import javafx.util.Pair;
  *
  */
 public class Simulator {
-	private int squareWidth = 36;
-	private Canvas canvas;
-	private GraphicsContext gc;
+	private int squareWidth = 18;
 	private int canvasWidth = 720;
 	private int canvasHeight = 360;
 	private int num_squaresX = this.canvasWidth / this.squareWidth;
 	private int num_squaresY = this.canvasHeight / this.squareWidth;
+	private int borderWidth = 5;
 
+	private Canvas canvas;
+	private GraphicsContext gc;
 	private Thread drawThread;
 	private SimulationThread runnable;
 	private boolean[][] board;
 
 	public Simulator() {
-		this.board = new boolean[num_squaresX][num_squaresY];
+		this.board = new boolean[num_squaresX + 2 * this.borderWidth][num_squaresY + 2 * this.borderWidth];
 		this.canvas = new Canvas(canvasWidth, canvasHeight);
 		this.drawThread = new Thread(runnable = new SimulationThread(this));
+		this.gc = canvas.getGraphicsContext2D();
+
 		this.canvas.setOnMouseClicked((MouseEvent e) -> {
 			this.onClick(e.getX(), e.getY());
 		});
+		this.canvas.setOnMouseDragged((MouseEvent e) -> {
 
-		this.gc = canvas.getGraphicsContext2D();
+		});
+
 		draw();
 	}
 
@@ -116,14 +121,15 @@ public class Simulator {
 		int screenToBoardX = (int) ((x * (double) this.num_squaresX) / (double) this.canvasWidth);
 		int screenToBoardY = (int) ((y * (double) this.num_squaresY) / (double) this.canvasHeight);
 
-		this.board[screenToBoardX][screenToBoardY] = !this.board[screenToBoardX][screenToBoardY];
+		this.board[screenToBoardX + this.borderWidth][screenToBoardY
+				+ this.borderWidth] = !this.board[screenToBoardX + this.borderWidth][screenToBoardY + this.borderWidth];
 
 		this.draw(screenToBoardX, screenToBoardY);
 	}
 
 	private void draw(int x, int y) {
 		gc.setLineWidth(2);
-		if (board[x][y])
+		if (board[x + this.borderWidth][y + this.borderWidth])
 			gc.setFill(Color.WHITE);
 		else
 			gc.setFill(Color.SLATEGREY);
@@ -134,15 +140,16 @@ public class Simulator {
 
 	private void draw() {
 		gc.setLineWidth(2);
-		for (int x = 0; x < this.canvasWidth / this.squareWidth; x++) {
-			for (int y = 0; y < this.canvasHeight / this.squareWidth; y++) {
+		for (int x = this.borderWidth; x < this.canvasWidth / this.squareWidth + this.borderWidth; x++) {
+			for (int y = this.borderWidth; y < this.canvasHeight / this.squareWidth + this.borderWidth; y++) {
 				if (board[x][y])
 					gc.setFill(Color.WHITE);
 				else {
 					gc.setFill(Color.SLATEGREY);
 
 				}
-				gc.fillRect(x * squareWidth, y * squareWidth, squareWidth, squareWidth);
+				gc.fillRect((x - this.borderWidth) * squareWidth, (y - this.borderWidth) * squareWidth, squareWidth,
+						squareWidth);
 			}
 		}
 		gc.setFill(Color.BLACK);
@@ -169,7 +176,7 @@ public class Simulator {
 	}
 
 	public void resetCanvas() {
-		this.board = new boolean[this.num_squaresX][this.num_squaresY];
+		this.board = new boolean[this.num_squaresX + 2 * this.borderWidth][this.num_squaresY + 2 * this.borderWidth];
 		draw();
 	}
 }
