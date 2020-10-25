@@ -17,6 +17,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class Main extends Application {
 	public static final int WIDTH = 780;
@@ -31,12 +32,15 @@ public class Main extends Application {
 		Button resetButton = new Button("Reset");
 		VBox vbox = new VBox();
 
+		Slider speedSlider = new Slider(1, 10, 1);
+		speedSlider.setMajorTickUnit(.5);
+		speedSlider.setMinorTickCount(2);
 		Slider zoomSlider = new Slider(.1, 10, 1);
-		zoomSlider.setMajorTickUnit(10);
+		zoomSlider.setMajorTickUnit(.5);
 		zoomSlider.setMinorTickCount(2);
 		zoomSlider.setSnapToTicks(true);
 
-		bottomButtonBar.getChildren().addAll(startToggleButton, stepButton, resetButton, zoomSlider);
+		bottomButtonBar.getChildren().addAll(startToggleButton, stepButton, resetButton, zoomSlider, speedSlider);
 		vbox.getChildren().addAll(graphics.getCavnas(), bottomButtonBar);
 
 		bottomButtonBar.setAlignment(Pos.BASELINE_CENTER);
@@ -49,21 +53,31 @@ public class Main extends Application {
 		primaryStage.setResizable(true);
 		primaryStage.getIcons().add(new Image("conwaygameoflifeicon.png"));
 
+		speedSlider.setOnMouseDragged((MouseEvent e) -> {
+			this.graphics.changeSpeed((long) speedSlider.getValue());
+		});
 		resetButton.setOnMouseClicked((MouseEvent e) -> {
 			this.graphics.resetCanvas();
-			
+			if (this.graphics.isRunning()) {
+				this.graphics.toggleSimulation();
+				startToggleButton.setText("Start");
+			}
+
 		});
 		stepButton.setOnMouseClicked((MouseEvent e) -> {
 			this.graphics.nextStep();
 		});
-		zoomSlider.setOnDragOver((DragEvent e) -> {
+		zoomSlider.setOnMouseDragged((MouseEvent e) -> {
 			System.out.println(zoomSlider.getValue());
-			// graphics.resizeScreen(zoom.getValue());
+			graphics.resizeScreen(zoomSlider.getValue());
 		});
 		startToggleButton.setOnMouseClicked((MouseEvent e) -> {
 			boolean state = graphics.toggleSimulation();
 			startToggleButton.setText(state ? "Stop" : "Start");
 			stepButton.setDisable(state);
+		});
+		primaryStage.setOnCloseRequest((WindowEvent e) -> {
+			
 		});
 	}
 

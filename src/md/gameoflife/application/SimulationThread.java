@@ -14,14 +14,14 @@ public class SimulationThread implements Runnable {
 	@Override
 	public void run() {
 		this.running = true;
-		while (this.running) {
-			this.sim.nextStep();
+		do {
 			try {
 				Thread.sleep(this.delay);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-		}
+			this.sim.nextStep();
+		} while (this.running);
 	}
 
 	public void setDelay(long newDelay) {

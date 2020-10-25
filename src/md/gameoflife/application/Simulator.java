@@ -10,7 +10,8 @@ import javafx.util.Pair;
 
 //TODO:
 /*
- * Add "infinite" borders
+ * Make nextStep() more efficient
+ * 	currently draw() methods won't draw correctly
  * Implement all buttons/sliders
  * 
  */
@@ -46,8 +47,11 @@ public class Simulator {
 		this.canvas.setOnMouseClicked((MouseEvent e) -> {
 			this.onClick(e.getX(), e.getY());
 		});
+		this.canvas.setOnMousePressed((MouseEvent e) -> {
+			System.out.println("pressed");
+		});
 		this.canvas.setOnMouseDragged((MouseEvent e) -> {
-
+			System.out.println(e.getX() + " " + e.getY());
 		});
 
 		draw();
@@ -92,8 +96,9 @@ public class Simulator {
 
 		return count;
 	}
-
+	
 	public void nextStep() {
+		System.out.println("nextStep");
 		ArrayList<Pair<Integer, Integer>> list = new ArrayList<>();
 		for (int x = 0; x < board.length; x++) {
 			for (int y = 0; y < board[0].length; y++) {
@@ -108,12 +113,13 @@ public class Simulator {
 		}
 		for (Pair<Integer, Integer> pair : list) {
 			board[pair.getKey()][pair.getValue()] = !board[pair.getKey()][pair.getValue()];
+
 		}
-		draw();
+		list.stream().forEach(e -> drawNeighbors(e.getKey(), e.getValue()));
 	}
 
 	public void resizeScreen(double factor) {
-		num_squaresX = (int) (num_squaresX / factor);
+		this.squareWidth = (int) (num_squaresX / factor);
 		draw();
 	}
 
@@ -125,6 +131,21 @@ public class Simulator {
 				+ this.borderWidth] = !this.board[screenToBoardX + this.borderWidth][screenToBoardY + this.borderWidth];
 
 		this.draw(screenToBoardX, screenToBoardY);
+	}
+
+	private void drawNeighbors(int x, int y) {
+		gc.setLineWidth(2);
+		for (int xIndex = x - 1; xIndex <= x + 1; xIndex++) {
+			for (int yIndex = y - 1; yIndex <= y + 1; yIndex++) {
+				if (board[x + this.borderWidth][y + this.borderWidth])
+					gc.setFill(Color.WHITE);
+				else
+					gc.setFill(Color.SLATEGREY);
+				gc.fillRect(x * this.squareWidth, y * this.squareWidth, this.squareWidth, this.squareWidth);
+				gc.setFill(Color.BLACK);
+				gc.strokeRect(x * this.squareWidth, y * this.squareWidth, this.squareWidth, this.squareWidth);
+			}
+		}
 	}
 
 	private void draw(int x, int y) {
@@ -163,6 +184,10 @@ public class Simulator {
 
 	}
 
+	public void changeSpeed(long factor) {
+		this.runnable.setDelay(1 / factor);
+	}
+
 	public boolean[][] getBoard() {
 		return this.board;
 	}
@@ -178,5 +203,9 @@ public class Simulator {
 	public void resetCanvas() {
 		this.board = new boolean[this.num_squaresX + 2 * this.borderWidth][this.num_squaresY + 2 * this.borderWidth];
 		draw();
+	}
+
+	public boolean isRunning() {
+		return this.drawThread.isAlive();
 	}
 }
