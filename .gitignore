@@ -10,7 +10,7 @@ local.properties
 .loadpath
 .recommenders
 .classpath
-
+.fxbuild
 # External tool builders
 .externalToolBuilders/
 
