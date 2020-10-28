@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -31,16 +32,17 @@ public class Main extends Application {
 		Button stepButton = new Button("Step");
 		Button resetButton = new Button("Reset");
 		VBox vbox = new VBox();
-
-		Slider speedSlider = new Slider(1, 10, 1);
+		Label genNum = new Label("Generation: ");
+		Slider speedSlider = new Slider(1, 4, 1);
 		speedSlider.setMajorTickUnit(.5);
-		speedSlider.setMinorTickCount(2);
-		Slider zoomSlider = new Slider(.1, 10, 1);
+		speedSlider.setSnapToTicks(true);
+		Slider zoomSlider = new Slider(1, 5, 1);
 		zoomSlider.setMajorTickUnit(.5);
 		zoomSlider.setMinorTickCount(2);
 		zoomSlider.setSnapToTicks(true);
 
-		bottomButtonBar.getChildren().addAll(startToggleButton, stepButton, resetButton, zoomSlider, speedSlider);
+		bottomButtonBar.getChildren().addAll(startToggleButton, stepButton, genNum, resetButton, zoomSlider,
+				speedSlider);
 		vbox.getChildren().addAll(graphics.getCavnas(), bottomButtonBar);
 
 		bottomButtonBar.setAlignment(Pos.BASELINE_CENTER);
@@ -54,13 +56,14 @@ public class Main extends Application {
 		primaryStage.getIcons().add(new Image("conwaygameoflifeicon.png"));
 
 		speedSlider.setOnMouseDragged((MouseEvent e) -> {
-			this.graphics.changeSpeed((long) speedSlider.getValue());
+			this.graphics.changeSpeed(speedSlider.getValue());
 		});
 		resetButton.setOnMouseClicked((MouseEvent e) -> {
 			this.graphics.resetCanvas();
 			if (this.graphics.isRunning()) {
 				this.graphics.toggleSimulation();
 				startToggleButton.setText("Start");
+				stepButton.setDisable(false);
 			}
 
 		});
@@ -68,7 +71,7 @@ public class Main extends Application {
 			this.graphics.nextStep();
 		});
 		zoomSlider.setOnMouseDragged((MouseEvent e) -> {
-			System.out.println(zoomSlider.getValue());
+			//System.out.println(zoomSlider.getValue());
 			graphics.resizeScreen(zoomSlider.getValue());
 		});
 		startToggleButton.setOnMouseClicked((MouseEvent e) -> {
@@ -77,7 +80,8 @@ public class Main extends Application {
 			stepButton.setDisable(state);
 		});
 		primaryStage.setOnCloseRequest((WindowEvent e) -> {
-			
+			if (graphics.isRunning())
+				graphics.toggleSimulation();
 		});
 	}
 
