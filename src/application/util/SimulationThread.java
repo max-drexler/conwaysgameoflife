@@ -1,4 +1,4 @@
-package md.gameoflife.application;
+package application.util;
 
 public class SimulationThread implements Runnable {
 	private Simulator sim;

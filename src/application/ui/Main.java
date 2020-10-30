@@ -1,4 +1,4 @@
-package md.gameoflife.application;
+package application.ui;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

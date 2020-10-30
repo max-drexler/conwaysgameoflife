@@ -1,6 +1,8 @@
-package md.gameoflife.application;
+package application.util;
 
 import java.util.ArrayList;
+
+import application.ui.Main;
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -207,9 +209,6 @@ public class Simulator {
 	/**
 	 * @param factor
 	 */
-	/**
-	 * @param factor
-	 */
 	public void changeSpeed(double factor) {
 		this.runnable.setDelay(1000 / (long) factor);
 	}
@@ -221,9 +220,6 @@ public class Simulator {
 		return this.board;
 	}
 
-	/**
-	 * @return
-	 */
 	/**
 	 * @return
 	 */

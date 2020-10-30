@@ -1,5 +1,6 @@
-package md.gameoflife.application;
+package application.ui;
 
+import application.util.Simulator;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
