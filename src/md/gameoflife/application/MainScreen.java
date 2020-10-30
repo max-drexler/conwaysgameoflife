@@ -13,26 +13,30 @@ public class MainScreen extends VBox {
 	private Simulator sim;
 	private Label genNum;
 
-	public MainScreen(Simulator s) {
-		this.sim = s;
+	public MainScreen() {
+		this.sim = new Simulator();
 		this.genNum = new Label("Generation: 0");
 		Button startToggleButton = new Button("Start");
 		Button stepButton = new Button("Step");
 		Button resetButton = new Button("Reset");
 		Slider speedSlider = new Slider(1, 4, 1);
-		Slider zoomSlider = new Slider(1, 5, 1);
-		HBox bottomButtonBar = new HBox(10, startToggleButton, stepButton, genNum, resetButton, zoomSlider,
-				speedSlider);
+		Slider zoomSlider = new Slider(2, 8, 8);
+		Label zoomLabel = new Label("Zoom");
+		Label speedLabel = new Label("Speed");
+		VBox zoomBox = new VBox(zoomSlider, zoomLabel);
+		VBox speedBox = new VBox(speedSlider, speedLabel);
+		HBox bottomButtonBar = new HBox(10, startToggleButton, stepButton, genNum, resetButton, zoomBox, speedBox);
 
 		this.getChildren().addAll(sim.getCavnas(), bottomButtonBar);
-
+		this.setAlignment(Pos.BASELINE_CENTER);
+		bottomButtonBar.setAlignment(Pos.BASELINE_CENTER);
+		zoomBox.setAlignment(Pos.BASELINE_CENTER);
+		speedBox.setAlignment(Pos.BASELINE_CENTER);
 		speedSlider.setMajorTickUnit(.5);
-		speedSlider.setSnapToTicks(true);
 		zoomSlider.setMajorTickUnit(.5);
 		zoomSlider.setMinorTickCount(2);
+		speedSlider.setSnapToTicks(true);
 		zoomSlider.setSnapToTicks(true);
-		bottomButtonBar.setAlignment(Pos.BASELINE_CENTER);
-		this.setAlignment(Pos.BASELINE_CENTER);
 
 		speedSlider.setOnMouseDragged((MouseEvent e) -> {
 			this.sim.changeSpeed(speedSlider.getValue());

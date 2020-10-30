@@ -1,7 +1,5 @@
 package md.gameoflife.application;
 
-import javafx.application.Platform;
-
 public class SimulationThread implements Runnable {
 	private Simulator sim;
 	private long delay;

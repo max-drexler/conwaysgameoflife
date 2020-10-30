@@ -1,22 +1,8 @@
 package md.gameoflife.application;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
-import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -29,13 +15,13 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 
-		main = new MainScreen(new Simulator());
+		main = new MainScreen();
 
 		Scene scene = new Scene(main, WIDTH, HEIGHT);
 		primaryStage.setTitle("Conway's Game of Life");
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		primaryStage.setResizable(true);
+		primaryStage.setResizable(false);
 		primaryStage.getIcons().add(new Image("conwaygameoflifeicon.png"));
 
 		primaryStage.setOnCloseRequest((WindowEvent e) -> {
