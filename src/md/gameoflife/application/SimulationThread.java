@@ -1,5 +1,7 @@
 package md.gameoflife.application;
 
+import javafx.application.Platform;
+
 public class SimulationThread implements Runnable {
 	private Simulator sim;
 	private long delay;
@@ -15,12 +17,13 @@ public class SimulationThread implements Runnable {
 	public void run() {
 		this.running = true;
 		do {
+			this.sim.nextStep();
 			try {
 				Thread.sleep(this.delay);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			this.sim.nextStep();
+
 		} while (this.running);
 	}
 

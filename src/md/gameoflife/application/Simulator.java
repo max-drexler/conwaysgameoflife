@@ -2,6 +2,7 @@ package md.gameoflife.application;
 
 import java.util.ArrayList;
 
+import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
@@ -27,11 +28,14 @@ import javafx.util.Pair;
  */
 public class Simulator {
 	private static int MIN_SQUARE_WIDTH = 10;
-	private int squareWidth = 72;
+	private static int MAX_SQUARE_WIDTH = 72;
+	private int squareWidth = MAX_SQUARE_WIDTH;
 	private int canvasWidth = 720;
 	private int canvasHeight = 360;
 	private int borderWidth = 5;
 	private int generation;
+
+	private Rectangle viewBox = new Rectangle(40, 40, 20, 10);
 
 	private Canvas canvas;
 	private GraphicsContext gc;
@@ -40,8 +44,7 @@ public class Simulator {
 	private boolean[][] board;
 
 	public Simulator() {
-		this.board = new boolean[this.canvasWidth / MIN_SQUARE_WIDTH
-				+ 2 * this.borderWidth][this.canvasHeight / MIN_SQUARE_WIDTH + 2 * this.borderWidth];
+		this.board = new boolean[100][100];
 		this.canvas = new Canvas(canvasWidth, canvasHeight);
 		this.drawThread = new Thread(runnable = new SimulationThread(this));
 		this.gc = canvas.getGraphicsContext2D();
@@ -100,6 +103,10 @@ public class Simulator {
 	}
 
 	public void nextStep() {
+		Platform.runLater(() -> {
+			Main.setGen(this.getGeneration());
+		});
+		this.generation++;
 		ArrayList<Pair<Integer, Integer>> list = new ArrayList<>();
 		for (int x = 0; x < board.length; x++) {
 			for (int y = 0; y < board[0].length; y++) {
@@ -116,24 +123,33 @@ public class Simulator {
 			board[pair.getKey()][pair.getValue()] = !board[pair.getKey()][pair.getValue()];
 
 		list.stream().forEach(e -> drawNeighbors(e.getKey(), e.getValue()));
-		this.generation++;
+
 	}
 
 	public void resizeScreen(double factor) {
-		int possibleResize = (int) ((double) (this.squareWidth) / factor);
-		this.squareWidth = MIN_SQUARE_WIDTH > possibleResize ? MIN_SQUARE_WIDTH : possibleResize;
-		System.out.println(squareWidth);
+		int expandX = (int) (this.viewBox.getWidth() * factor - this.viewBox.getWidth());
+		int expandY = (int) (this.viewBox.getHeight() * factor - this.viewBox.getHeight());
+
+		Rectangle newBox = new Rectangle((this.viewBox.getX() - expandX / 2), this.viewBox.getY() - expandY / 2,
+				this.viewBox.getWidth() + expandX / 2, this.viewBox.getHeight() + expandY / 2);
+		if (newBox.getX() > this.borderWidth && newBox.getY() > this.borderWidth
+				&& newBox.getX() + newBox.getWidth() < this.board[0].length - this.borderWidth
+				&& newBox.getY() + newBox.getHeight() < this.board.length - this.borderWidth)
+			this.viewBox = newBox;
+		gc.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
 		draw();
 	}
 
 	private void onClick(double x, double y) {
-		int screenToBoardX = (int) (x / (double) this.squareWidth);
-		int screenToBoardY = (int) (y / (double) this.squareWidth);
+		int screenToBoardX = (int) (x * this.viewBox.getWidth() / (double) this.canvasWidth);
+		int screenToBoardY = (int) (y * this.viewBox.getHeight() / (double) this.canvasHeight);
 
-		this.board[screenToBoardX + this.borderWidth][screenToBoardY
-				+ this.borderWidth] = !this.board[screenToBoardX + this.borderWidth][screenToBoardY + this.borderWidth];
+		this.board[(int) (screenToBoardX + this.viewBox.getX())][(int) (screenToBoardY + this.viewBox
+				.getY())] = !this.board[(int) (screenToBoardX + this.viewBox.getX())][(int) (screenToBoardY
+						+ this.viewBox.getY())];
 
-		this.draw(screenToBoardX + this.borderWidth, screenToBoardY + this.borderWidth);
+		this.draw((int) (screenToBoardX + this.viewBox.getX()), (int) (screenToBoardY + this.viewBox.getY()));
 	}
 
 	private void draw(int x, int y) {
@@ -142,11 +158,13 @@ public class Simulator {
 			gc.setFill(Color.WHITE);
 		else
 			gc.setFill(Color.SLATEGREY);
-		gc.fillRect((x - this.borderWidth) * this.squareWidth, (y - this.borderWidth) * this.squareWidth,
-				this.squareWidth, this.squareWidth);
+		gc.fillRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+				(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
+				this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
 		gc.setFill(Color.BLACK);
-		gc.strokeRect((x - this.borderWidth) * this.squareWidth, (y - this.borderWidth) * this.squareWidth,
-				this.squareWidth, this.squareWidth);
+		gc.strokeRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+				(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
+				this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
 	}
 
 	private void drawNeighbors(int x, int y) {
@@ -157,33 +175,52 @@ public class Simulator {
 					gc.setFill(Color.WHITE);
 				else
 					gc.setFill(Color.SLATEGREY);
-				gc.fillRect((x - this.borderWidth) * squareWidth, (y - this.borderWidth) * squareWidth, squareWidth,
-						squareWidth);
+				gc.fillRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
+						this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
 				gc.setFill(Color.BLACK);
-				gc.strokeRect((x - this.borderWidth) * this.squareWidth, (y - this.borderWidth) * this.squareWidth,
-						this.squareWidth, this.squareWidth);
+				gc.strokeRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
+						this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
 			}
 		}
 	}
 
 	private void draw() {
 		gc.setLineWidth(2);
-		for (int x = this.borderWidth; x < this.canvasWidth / this.squareWidth + this.borderWidth; x++) {
-			for (int y = this.borderWidth; y < this.canvasHeight / this.squareWidth + this.borderWidth; y++) {
+		for (int x = (int) this.viewBox.getX(); x < this.viewBox.getX() + this.viewBox.getWidth(); x++) {
+			for (int y = (int) this.viewBox.getY(); y < this.viewBox.getY() + this.viewBox.getHeight(); y++) {
 				if (board[x][y])
 					gc.setFill(Color.WHITE);
 				else {
 					gc.setFill(Color.SLATEGREY);
-
 				}
-				gc.fillRect((x - this.borderWidth) * squareWidth, (y - this.borderWidth) * squareWidth, squareWidth,
-						squareWidth);
+				gc.fillRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
+						this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
 				gc.setFill(Color.BLACK);
-				gc.strokeRect((x - this.borderWidth) * this.squareWidth, (y - this.borderWidth) * this.squareWidth,
-						this.squareWidth, this.squareWidth);
+				gc.strokeRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
+						this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
 			}
 		}
 	}
+//	private void draw() {
+//		gc.setLineWidth(2);
+//		for (int x = this.borderWidth; x < this.canvasWidth / this.squareWidth + this.borderWidth; x++) {
+//			for (int y = this.borderWidth; y < this.canvasHeight / this.squareWidth + this.borderWidth; y++) {
+//				if (board[x][y])
+//					gc.setFill(Color.WHITE);
+//				else 
+//					gc.setFill(Color.SLATEGREY);
+//				gc.fillRect((x - this.borderWidth) * squareWidth, (y - this.borderWidth) * squareWidth, squareWidth,
+//						squareWidth);
+//				gc.setFill(Color.BLACK);
+//				gc.strokeRect((x - this.borderWidth) * this.squareWidth, (y - this.borderWidth) * this.squareWidth,
+//						this.squareWidth, this.squareWidth);
+//			}
+//		}
+//	}
 
 	public void changeSpeed(double factor) {
 		this.runnable.setDelay(1000 / (long) factor);
@@ -209,7 +246,7 @@ public class Simulator {
 		this.board = new boolean[this.canvasWidth / MIN_SQUARE_WIDTH
 				+ 2 * this.borderWidth][this.canvasHeight / MIN_SQUARE_WIDTH + 2 * this.borderWidth];
 		this.canvas = new Canvas(canvasWidth, canvasHeight);
-		this.generation = 0;
+		Main.setGen(this.generation = 0);
 		draw();
 	}
 
