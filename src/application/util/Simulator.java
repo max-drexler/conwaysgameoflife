@@ -12,31 +12,31 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.util.Pair;
 
-
 /**
  * @author Max Drexler
  *
  */
-public class Simulator {
-	private int canvasWidth = 720;
-	private int canvasHeight = 360;
+public class Simulator extends Canvas {
+
+	private int canvasHeight;
 	private int borderWidth = 5;
 	private int generation;
 
 	private Rectangle viewBox;
-	private Canvas canvas;
 	private GraphicsContext gc;
 	private Thread drawThread;
 	private SimulationThread runnable;
 	private boolean[][] board;
+	private double widthRatio = .02;
 
-	public Simulator() {
-		this.board = new boolean[150][75];
-		this.canvas = new Canvas(canvasWidth, canvasHeight);
+	public Simulator(double width, double height) {
+		super(width, height);
+		this.board = new boolean[500][250];
 		this.drawThread = new Thread(runnable = new SimulationThread(this));
-		this.gc = canvas.getGraphicsContext2D();
+		this.gc = this.getGraphicsContext2D();
 		this.generation = 0;
-		this.viewBox = new Rectangle(62, 28, 17, 8);
+		this.viewBox = new Rectangle(62, 28, (int) (getWidth() * this.widthRatio), 8);
+		this.canvasHeight = (int) height;
 
 		gc.setLineWidth(1);
 		gc.setLineCap(StrokeLineCap.SQUARE);
@@ -44,8 +44,8 @@ public class Simulator {
 		gc.setMiterLimit(10);
 		gc.setLineJoin(StrokeLineJoin.ROUND);
 
-		this.canvas.setOnMouseClicked((MouseEvent e) -> {
-			int screenToBoardX = (int) (e.getX() * this.viewBox.getWidth() / (double) this.canvasWidth);
+		this.setOnMouseClicked((MouseEvent e) -> {
+			int screenToBoardX = (int) (e.getX() * this.viewBox.getWidth() / (double) this.getWidth());
 			int screenToBoardY = (int) (e.getY() * this.viewBox.getHeight() / (double) this.canvasHeight);
 
 			this.board[(int) (screenToBoardX + this.viewBox.getX())][(int) (screenToBoardY + this.viewBox
@@ -55,7 +55,33 @@ public class Simulator {
 			this.draw((int) (screenToBoardX + this.viewBox.getX()), (int) (screenToBoardY + this.viewBox.getY()));
 		});
 
+		widthProperty().addListener(evt -> {
+			this.viewBox.setWidth((int) (this.getWidth() * this.widthRatio));
+			draw();
+
+		});
+		heightProperty().addListener(evt -> {
+			// this.viewBox.setHeight((int) this.getHeight());
+			draw();
+		});
+
 		draw();
+	}
+
+	@Override
+	public double prefWidth(double width) {
+		return getWidth();
+
+	}
+
+	@Override
+	public double prefHeight(double height) {
+		return getHeight();
+	}
+
+	@Override
+	public boolean isResizable() {
+		return true;
 	}
 
 	/**
@@ -141,7 +167,7 @@ public class Simulator {
 		int newHeight = newWidth / 2;
 		this.viewBox.setBounds((this.board.length - 2 * this.borderWidth) / 2 - newWidth / 2,
 				(this.board[0].length - 2 * this.borderWidth) / 2 - newHeight / 2, newWidth, newHeight);
-		gc.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+		gc.clearRect(0, 0, this.getWidth(), this.canvasHeight);
 		draw();
 	}
 
@@ -154,9 +180,9 @@ public class Simulator {
 			gc.setFill(Color.WHITE);
 		else
 			gc.setFill(Color.SLATEGREY);
-		Rectangle rec = new Rectangle((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+		Rectangle rec = new Rectangle((int) ((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth()),
 				(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
-				this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
+				(int) (this.getWidth() / this.viewBox.getWidth()), this.canvasHeight / this.viewBox.getHeight());
 		gc.fillRect(rec.getX() + 1, rec.getY() + 1, rec.getWidth() - 1, rec.getHeight() - 1);
 		gc.strokeRect(rec.getX(), rec.getY(), rec.getWidth(), rec.getHeight());
 	}
@@ -172,13 +198,13 @@ public class Simulator {
 					gc.setFill(Color.WHITE);
 				else
 					gc.setFill(Color.SLATEGREY);
-				gc.fillRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth() + 1,
+				gc.fillRect((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth() + 1,
 						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight() + 1,
-						this.canvasWidth / this.viewBox.getWidth() - 1,
+						this.getWidth() / this.viewBox.getWidth() - 1,
 						this.canvasHeight / this.viewBox.getHeight() - 1);
-				gc.strokeRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+				gc.strokeRect((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth(),
 						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
-						this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
+						this.getWidth() / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
 			}
 		}
 	}
@@ -187,7 +213,8 @@ public class Simulator {
 	 * 
 	 */
 	private void draw() {
-		gc.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+		gc.clearRect(0, 0, this.getWidth(), this.canvasHeight);
+		//gc.strokeRect(0, 0, this.getWidth(), this.getHeight());
 		for (int x = (int) this.viewBox.getX(); x < this.viewBox.getX() + this.viewBox.getWidth(); x++) {
 			for (int y = (int) this.viewBox.getY(); y < this.viewBox.getY() + this.viewBox.getHeight(); y++) {
 				if (board[x][y])
@@ -195,13 +222,13 @@ public class Simulator {
 				else {
 					gc.setFill(Color.SLATEGREY);
 				}
-				gc.fillRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth() + 1,
+				gc.fillRect((int) ((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth() + 1),
 						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight() + 1,
-						this.canvasWidth / this.viewBox.getWidth() - 1,
+						(int) (this.getWidth() / this.viewBox.getWidth()),
 						this.canvasHeight / this.viewBox.getHeight() - 1);
-				gc.strokeRect((x - this.viewBox.getX()) * this.canvasWidth / this.viewBox.getWidth(),
+				gc.strokeRect((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth(),
 						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
-						this.canvasWidth / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
+						this.getWidth() / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
 			}
 		}
 	}
@@ -221,18 +248,11 @@ public class Simulator {
 	}
 
 	/**
-	 * @return
-	 */
-	public Canvas getCavnas() {
-		return this.canvas;
-	}
-
-	/**
 	 * 
 	 */
 	public void resetCanvas() {
 		this.board = new boolean[150][75];
-		this.canvas = new Canvas(canvasWidth, canvasHeight);
+		// this.canvas = new Canvas(getWidth(), canvasHeight);
 		Main.setGen(this.generation = 0);
 		draw();
 	}

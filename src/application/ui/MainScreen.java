@@ -1,12 +1,16 @@
 package application.ui;
 
 import application.util.Simulator;
+import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 public class MainScreen extends VBox {
@@ -15,7 +19,7 @@ public class MainScreen extends VBox {
 	private Label genNum;
 
 	public MainScreen() {
-		this.sim = new Simulator();
+		this.sim = new Simulator(720, 360);
 		this.genNum = new Label("Generation: 0");
 		Button startToggleButton = new Button("Start");
 		Button stepButton = new Button("Step");
@@ -26,9 +30,12 @@ public class MainScreen extends VBox {
 		Label speedLabel = new Label("Speed");
 		VBox zoomBox = new VBox(zoomSlider, zoomLabel);
 		VBox speedBox = new VBox(speedSlider, speedLabel);
+		StackPane pane = new StackPane(sim);
 		HBox bottomButtonBar = new HBox(10, startToggleButton, stepButton, genNum, resetButton, zoomBox, speedBox);
+		AnchorPane anc = new AnchorPane(bottomButtonBar);
 
-		this.getChildren().addAll(sim.getCavnas(), bottomButtonBar);
+		bottomButtonBar.setAlignment(Pos.TOP_CENTER);
+		this.getChildren().addAll(anc, pane);
 		this.setAlignment(Pos.BASELINE_CENTER);
 		bottomButtonBar.setAlignment(Pos.BASELINE_CENTER);
 		zoomBox.setAlignment(Pos.BASELINE_CENTER);
@@ -38,6 +45,13 @@ public class MainScreen extends VBox {
 		zoomSlider.setMinorTickCount(2);
 		speedSlider.setSnapToTicks(true);
 		zoomSlider.setSnapToTicks(true);
+		pane.setPrefSize(720, 360);
+		AnchorPane.setTopAnchor(bottomButtonBar, 10.0);
+		AnchorPane.setBottomAnchor(bottomButtonBar, 10.0);
+		VBox.setVgrow(pane, Priority.ALWAYS);
+		anc.setMaxHeight(50.0);
+		sim.widthProperty().bind(pane.widthProperty());
+		sim.heightProperty().bind(pane.heightProperty());
 
 		speedSlider.setOnMouseDragged((MouseEvent e) -> {
 			this.sim.changeSpeed(speedSlider.getValue());

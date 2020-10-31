@@ -36,6 +36,14 @@ public class Rectangle {
 		return this.h;
 	}
 
+	public void setWidth(int w) {
+		this.w = w;
+	}
+
+	public void setHeight(int h) {
+		this.h = h;
+	}
+
 	@Override
 	public String toString() {
 		return this.x + " " + this.y + " " + this.w + " " + this.h;
