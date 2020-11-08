@@ -17,28 +17,26 @@ import javafx.util.Pair;
  *
  */
 public class Simulator extends Canvas {
-
-	private int canvasHeight;
-	private int borderWidth = 5;
-	private int generation;
-
-	private Rectangle viewBox;
-	private GraphicsContext gc;
 	private Thread drawThread;
 	private SimulationThread runnable;
+	private GraphicsContext gc;
+	private Rectangle viewBox;
 	private boolean[][] board;
-	private double widthRatio = .02;
+	private int generation;
+
+	private static final int BOARD_WIDTH = 500;
+	private static final int BOARD_HEIGHT = 250;
+	private static final int BOARD_BORDER = 5;
 
 	public Simulator(double width, double height) {
 		super(width, height);
-		this.board = new boolean[500][250];
+		this.board = new boolean[BOARD_WIDTH][BOARD_HEIGHT];
 		this.drawThread = new Thread(runnable = new SimulationThread(this));
 		this.gc = this.getGraphicsContext2D();
 		this.generation = 0;
-		this.viewBox = new Rectangle(62, 28, (int) (getWidth() * this.widthRatio), 8);
-		this.canvasHeight = (int) height;
+		this.viewBox = new Rectangle(241, 118, 9, 4);
 
-		gc.setLineWidth(1);
+		gc.setLineWidth(1.0);
 		gc.setLineCap(StrokeLineCap.SQUARE);
 		gc.setStroke(new Color(0, 0, 0, 1));
 		gc.setMiterLimit(10);
@@ -46,46 +44,22 @@ public class Simulator extends Canvas {
 
 		this.setOnMouseClicked((MouseEvent e) -> {
 			int screenToBoardX = (int) (e.getX() * this.viewBox.getWidth() / (double) this.getWidth());
-			int screenToBoardY = (int) (e.getY() * this.viewBox.getHeight() / (double) this.canvasHeight);
+			int screenToBoardY = (int) (e.getY() * this.viewBox.getHeight() / (double) this.getHeight());
 
 			this.board[(int) (screenToBoardX + this.viewBox.getX())][(int) (screenToBoardY + this.viewBox
 					.getY())] = !this.board[(int) (screenToBoardX + this.viewBox.getX())][(int) (screenToBoardY
 							+ this.viewBox.getY())];
 
-			this.draw((int) (screenToBoardX + this.viewBox.getX()), (int) (screenToBoardY + this.viewBox.getY()));
-		});
-
-		widthProperty().addListener(evt -> {
-			this.viewBox.setWidth((int) (this.getWidth() * this.widthRatio));
-			draw();
-
-		});
-		heightProperty().addListener(evt -> {
-			// this.viewBox.setHeight((int) this.getHeight());
-			draw();
+			this.draw(screenToBoardX, screenToBoardY);
 		});
 
 		draw();
 	}
 
-	@Override
-	public double prefWidth(double width) {
-		return getWidth();
-
-	}
-
-	@Override
-	public double prefHeight(double height) {
-		return getHeight();
-	}
-
-	@Override
-	public boolean isResizable() {
-		return true;
-	}
-
 	/**
-	 * @return
+	 * Toggles the current state of the simulation between running and off
+	 * 
+	 * @return if simulation is running
 	 */
 	public boolean toggleSimulation() {
 		if (drawThread.getState().equals(Thread.State.RUNNABLE)
@@ -99,25 +73,29 @@ public class Simulator extends Canvas {
 				}
 				return false;
 			}
+		} else if (drawThread.getState().equals(Thread.State.TERMINATED)) {
+			this.drawThread = new Thread(runnable);
+			return this.toggleSimulation();
 		} else if (drawThread.getState().equals(Thread.State.WAITING)) {
 			drawThread.notify();
 			return true;
 		} else if (drawThread.getState().equals(Thread.State.NEW)) {
 			drawThread.start();
 			return true;
-		} else if (drawThread.getState().equals(Thread.State.TERMINATED)) {
-			this.drawThread = new Thread(runnable);
-			return this.toggleSimulation();
 		}
 		return false;
 	}
 
 	/**
-	 * @param x
-	 * @param y
-	 * @return
+	 * Calculates the number of living neighbors around cell located at given x and
+	 * y coordinate. A neighbor is any cell that is next to or diagonal of the given
+	 * cell.
+	 * 
+	 * @param x value of cell in board array to check neighbors
+	 * @param y value of cell in board array to check neighbors
+	 * @return number of living neighbors of this cell
 	 */
-	private int calculateNeighbors(int x, int y) {
+	private int calculateLiveNeighbors(int x, int y) {
 		int count = 0;
 		for (int xIndex = x - 1; xIndex <= x + 1; xIndex++) {
 			for (int yIndex = y - 1; yIndex <= y + 1; yIndex++) {
@@ -125,29 +103,30 @@ public class Simulator extends Canvas {
 					if (board[xIndex][yIndex] && !(xIndex == x && yIndex == y))
 						count++;
 				} catch (ArrayIndexOutOfBoundsException e) {
+					// Thrown when x or y at bounds of board array
 				}
 			}
 		}
-
 		return count;
 	}
 
 	/**
-	 * 
+	 * Performs all necessary calculations to continue the simulation for one
+	 * generation
 	 */
 	public void nextStep() {
 		Platform.runLater(() -> {
-			Main.setGen(this.generation);
+			Main.setGen(this.generation); // updates generation label
 		});
 		this.generation++;
 		ArrayList<Pair<Integer, Integer>> list = new ArrayList<>();
 		for (int x = 0; x < board.length; x++) {
 			for (int y = 0; y < board[0].length; y++) {
 				if (board[x][y]) {
-					if (calculateNeighbors(x, y) > 3 || calculateNeighbors(x, y) < 2)
+					if (calculateLiveNeighbors(x, y) > 3 || calculateLiveNeighbors(x, y) < 2)
 						list.add(new Pair<Integer, Integer>(x, y));
 				} else {
-					if (calculateNeighbors(x, y) == 3)
+					if (calculateLiveNeighbors(x, y) == 3)
 						list.add(new Pair<Integer, Integer>(x, y));
 				}
 			}
@@ -155,110 +134,124 @@ public class Simulator extends Canvas {
 		for (Pair<Integer, Integer> pair : list)
 			board[pair.getKey()][pair.getValue()] = !board[pair.getKey()][pair.getValue()];
 
-		list.stream().forEach(e -> drawNeighbors(e.getKey(), e.getValue()));
+		// only draws x,y pairs that are visible on screen (located within current
+		// viewbox)
+		list.stream().filter(x -> this.viewBox.inBounds(x.getKey(), x.getValue()))
+				.forEach(e -> drawNeighbors(e.getKey(), e.getValue()));
 
 	}
 
-	/**
-	 * @param factor
+	/*-
+	 * resizes the viewbox based on given factor, in effect changing how many cells
+	 * are drawn to the screen
+	 * 
+	 * @param factor in which to grow or shrink the screen
+	 *-		factor < 1 : increase viewbox size -> increase amount of cells drawn to screen
+	 *- 	factor > 1 : decrease viewbox size -> decrease amount of cells drawn to screen
 	 */
 	public void resizeScreen(double factor) {
-		int newWidth = (int) ((this.board.length - 2 * this.borderWidth) / factor);
+		int newWidth = (int) ((this.board.length - 2 * BOARD_BORDER) / factor);
 		int newHeight = newWidth / 2;
-		this.viewBox.setBounds((this.board.length - 2 * this.borderWidth) / 2 - newWidth / 2,
-				(this.board[0].length - 2 * this.borderWidth) / 2 - newHeight / 2, newWidth, newHeight);
-		gc.clearRect(0, 0, this.getWidth(), this.canvasHeight);
+		// expands viewbox around center point on screen
+		this.viewBox.setBounds((this.board.length - 2 * BOARD_BORDER) / 2 - newWidth / 2,
+				(this.board[0].length - 2 * BOARD_BORDER) / 2 - newHeight / 2, newWidth, newHeight);
+		gc.clearRect(0, 0, this.getWidth(), this.getHeight());
 		draw();
 	}
 
 	/**
-	 * @param x
-	 * @param y
+	 * draws a cell to screen at specified point on screen based on given coordinate
+	 * in board array
+	 * 
+	 * @param x value of cell in board array
+	 * @param y value of cell in board array
 	 */
 	private void draw(int x, int y) {
-		if (board[x][y])
+		if (board[x + this.viewBox.getX()][y + this.viewBox.getY()])
 			gc.setFill(Color.WHITE);
 		else
 			gc.setFill(Color.SLATEGREY);
-		Rectangle rec = new Rectangle((int) ((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth()),
-				(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
-				(int) (this.getWidth() / this.viewBox.getWidth()), this.canvasHeight / this.viewBox.getHeight());
-		gc.fillRect(rec.getX() + 1, rec.getY() + 1, rec.getWidth() - 1, rec.getHeight() - 1);
-		gc.strokeRect(rec.getX(), rec.getY(), rec.getWidth(), rec.getHeight());
+
+		gc.fillRect(x * this.getWidth() / this.viewBox.getWidth(), y * this.getHeight() / this.viewBox.getHeight(),
+				this.getWidth() / this.viewBox.getWidth(), this.getHeight() / this.viewBox.getHeight());
+
+		gc.strokeRect(x * this.getWidth() / this.viewBox.getWidth(), y * this.getHeight() / this.viewBox.getHeight(),
+				this.getWidth() / this.viewBox.getWidth(), this.getHeight() / this.viewBox.getHeight());
 	}
 
 	/**
-	 * @param x
-	 * @param y
+	 * draws cells to screen around and at specified point on screen based on given
+	 * coordinate in board array
+	 * 
+	 * @param x value of cell in board array
+	 * @param y value of cell in board array
 	 */
 	private void drawNeighbors(int x, int y) {
 		for (int xIndex = x - 1; xIndex <= x + 1; xIndex++) {
 			for (int yIndex = y - 1; yIndex <= y + 1; yIndex++) {
-				if (board[x][y])
-					gc.setFill(Color.WHITE);
-				else
-					gc.setFill(Color.SLATEGREY);
-				gc.fillRect((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth() + 1,
-						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight() + 1,
-						this.getWidth() / this.viewBox.getWidth() - 1,
-						this.canvasHeight / this.viewBox.getHeight() - 1);
-				gc.strokeRect((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth(),
-						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
-						this.getWidth() / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
+				try {
+					if (board[xIndex][yIndex])
+						gc.setFill(Color.WHITE);
+					else
+						gc.setFill(Color.SLATEGREY);
+				} catch (IndexOutOfBoundsException e) {
+				}
+				gc.fillRect((xIndex - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth(),
+						(yIndex - this.viewBox.getY()) * this.getHeight() / this.viewBox.getHeight(),
+						this.getWidth() / this.viewBox.getWidth(), this.getHeight() / this.viewBox.getHeight());
+				gc.strokeRect((xIndex - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth(),
+						(yIndex - this.viewBox.getY()) * this.getHeight() / this.viewBox.getHeight(),
+						this.getWidth() / this.viewBox.getWidth(), this.getHeight() / this.viewBox.getHeight());
 			}
 		}
 	}
 
 	/**
-	 * 
+	 * draws the entire viewbox to screen
 	 */
 	private void draw() {
-		gc.clearRect(0, 0, this.getWidth(), this.canvasHeight);
-		//gc.strokeRect(0, 0, this.getWidth(), this.getHeight());
-		for (int x = (int) this.viewBox.getX(); x < this.viewBox.getX() + this.viewBox.getWidth(); x++) {
-			for (int y = (int) this.viewBox.getY(); y < this.viewBox.getY() + this.viewBox.getHeight(); y++) {
-				if (board[x][y])
+		gc.clearRect(0, 0, this.getWidth(), this.getHeight());
+		// gc.strokeRect(0, 0, this.getWidth(), this.getHeight());
+		for (int x = 0; x < this.viewBox.getWidth(); x++) {
+			for (int y = 0; y < this.viewBox.getHeight(); y++) {
+				if (board[x + this.viewBox.getX()][y + this.viewBox.getY()])
 					gc.setFill(Color.WHITE);
 				else {
 					gc.setFill(Color.SLATEGREY);
 				}
-				gc.fillRect((int) ((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth() + 1),
-						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight() + 1,
-						(int) (this.getWidth() / this.viewBox.getWidth()),
-						this.canvasHeight / this.viewBox.getHeight() - 1);
-				gc.strokeRect((x - this.viewBox.getX()) * this.getWidth() / this.viewBox.getWidth(),
-						(y - this.viewBox.getY()) * this.canvasHeight / this.viewBox.getHeight(),
-						this.getWidth() / this.viewBox.getWidth(), this.canvasHeight / this.viewBox.getHeight());
+				gc.fillRect(x * this.getWidth() / this.viewBox.getWidth(),
+						y * this.getHeight() / this.viewBox.getHeight(), this.getWidth() / this.viewBox.getWidth(),
+						this.getHeight() / this.viewBox.getHeight());
+
+				gc.strokeRect(x * this.getWidth() / this.viewBox.getWidth(),
+						y * this.getHeight() / this.viewBox.getHeight(), this.getWidth() / this.viewBox.getWidth(),
+						this.getHeight() / this.viewBox.getHeight());
+
 			}
 		}
 	}
 
 	/**
-	 * @param factor
+	 * increases or decreases the speed of the simulation based on factor
+	 * 
+	 * @param factor at which to change the speed of the simulation
+	 *
 	 */
 	public void changeSpeed(double factor) {
 		this.runnable.setDelay(1000 / (long) factor);
 	}
 
 	/**
-	 * @return
+	 * completely resets the current simulation by creating a new board array
 	 */
-	public boolean[][] getBoard() {
-		return this.board;
-	}
-
-	/**
-	 * 
-	 */
-	public void resetCanvas() {
-		this.board = new boolean[150][75];
-		// this.canvas = new Canvas(getWidth(), canvasHeight);
+	public void resetSimulation() {
+		this.board = new boolean[BOARD_WIDTH][BOARD_HEIGHT];
 		Main.setGen(this.generation = 0);
 		draw();
 	}
 
 	/**
-	 * @return
+	 * @return if simulation is running without toggling simulation
 	 */
 	public boolean isRunning() {
 		return this.drawThread.isAlive();

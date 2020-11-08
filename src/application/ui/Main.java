@@ -1,17 +1,14 @@
 package application.ui;
 
-import java.io.File;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 public class Main extends Application {
-	public static final int WIDTH = 780;
-	public static final int HEIGHT = 404;
+	public static final int WIDTH = 710;
+	public static final int HEIGHT = 400;
 
 	private static MainScreen main;
 
@@ -30,7 +27,6 @@ public class Main extends Application {
 				new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon128.png")),
 				new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon256.png")),
 				new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon512.png")));
-		primaryStage.setResizable(true);
 		primaryStage.setOnCloseRequest((WindowEvent e) -> {
 			main.flushThreads();
 		});

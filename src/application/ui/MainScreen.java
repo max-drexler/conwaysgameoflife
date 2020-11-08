@@ -1,7 +1,6 @@
 package application.ui;
 
 import application.util.Simulator;
-import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -9,8 +8,6 @@ import javafx.scene.control.Slider;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 public class MainScreen extends VBox {
@@ -25,17 +22,15 @@ public class MainScreen extends VBox {
 		Button stepButton = new Button("Step");
 		Button resetButton = new Button("Reset");
 		Slider speedSlider = new Slider(1, 4, 1);
-		Slider zoomSlider = new Slider(2, 8, 8);
+		Slider zoomSlider = new Slider(10, 50, 50);
 		Label zoomLabel = new Label("Zoom");
 		Label speedLabel = new Label("Speed");
 		VBox zoomBox = new VBox(zoomSlider, zoomLabel);
 		VBox speedBox = new VBox(speedSlider, speedLabel);
-		StackPane pane = new StackPane(sim);
 		HBox bottomButtonBar = new HBox(10, startToggleButton, stepButton, genNum, resetButton, zoomBox, speedBox);
-		AnchorPane anc = new AnchorPane(bottomButtonBar);
 
 		bottomButtonBar.setAlignment(Pos.TOP_CENTER);
-		this.getChildren().addAll(anc, pane);
+		this.getChildren().addAll(sim, bottomButtonBar);
 		this.setAlignment(Pos.BASELINE_CENTER);
 		bottomButtonBar.setAlignment(Pos.BASELINE_CENTER);
 		zoomBox.setAlignment(Pos.BASELINE_CENTER);
@@ -45,25 +40,19 @@ public class MainScreen extends VBox {
 		zoomSlider.setMinorTickCount(2);
 		speedSlider.setSnapToTicks(true);
 		zoomSlider.setSnapToTicks(true);
-		pane.setPrefSize(720, 360);
 		AnchorPane.setTopAnchor(bottomButtonBar, 10.0);
 		AnchorPane.setBottomAnchor(bottomButtonBar, 10.0);
-		VBox.setVgrow(pane, Priority.ALWAYS);
-		anc.setMaxHeight(50.0);
-		sim.widthProperty().bind(pane.widthProperty());
-		sim.heightProperty().bind(pane.heightProperty());
 
 		speedSlider.setOnMouseDragged((MouseEvent e) -> {
 			this.sim.changeSpeed(speedSlider.getValue());
 		});
 		resetButton.setOnMouseClicked((MouseEvent e) -> {
-			this.sim.resetCanvas();
+			this.sim.resetSimulation();
 			if (this.sim.isRunning()) {
 				this.sim.toggleSimulation();
 				startToggleButton.setText("Start");
 				stepButton.setDisable(false);
 			}
-
 		});
 		stepButton.setOnMouseClicked((MouseEvent e) -> {
 			this.sim.nextStep();
