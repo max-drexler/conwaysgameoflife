@@ -14,7 +14,7 @@ import javafx.stage.WindowEvent;
  */
 public class Main extends Application {
 	public static final int WIDTH = 710;
-	public static final int HEIGHT = 400;
+	public static final int HEIGHT = 410;
 
 	private static MainScreen main;
 
