@@ -15,7 +15,6 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		main = new MainScreen();
-		;
 		Scene scene = new Scene(main, WIDTH, HEIGHT);
 		primaryStage.setTitle("Conway's Game of Life");
 		primaryStage.setScene(scene);
