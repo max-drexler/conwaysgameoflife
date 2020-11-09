@@ -28,7 +28,7 @@ import javafx.util.Pair;
  */
 public class Simulator extends Canvas {
 	private Thread drawThread;
-	private SimulationThread runnable;
+	private SimulationRunner runnable;
 	private GraphicsContext gc;
 	private boolean[][] board; // data structure used to represent living and dead cells in a grid
 	private Rectangle viewBox; // a resizable area of the board array that is displayed on the screen
@@ -42,7 +42,7 @@ public class Simulator extends Canvas {
 	public Simulator(double width, double height) {
 		super(width, height);
 		this.board = new boolean[BOARD_WIDTH][BOARD_HEIGHT];
-		this.drawThread = new Thread(runnable = new SimulationThread(this));
+		this.drawThread = new Thread(runnable = new SimulationRunner(this));
 		this.gc = this.getGraphicsContext2D();
 		this.generation = 0;
 		this.viewBox = new Rectangle(241, 118, 9, 4); // default area of board array to be displayed
@@ -168,7 +168,7 @@ public class Simulator extends Canvas {
 		int newWidth = (int) ((this.board.length - 2 * BOARD_BORDER) / factor);
 		int newHeight = newWidth / 2;
 		// expands viewbox around center point on screen
-		this.viewBox.setBounds((this.board.length - 2 * BOARD_BORDER) / 2 - newWidth / 2,
+		this.viewBox = new Rectangle((this.board.length - 2 * BOARD_BORDER) / 2 - newWidth / 2,
 				(this.board[0].length - 2 * BOARD_BORDER) / 2 - newHeight / 2, newWidth, newHeight);
 		gc.clearRect(0, 0, this.getWidth(), this.getHeight());
 		draw();

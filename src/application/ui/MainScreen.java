@@ -6,16 +6,21 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+/***
+ * The main screen of this JavaFX application
+ * 
+ * @author Max Drexler
+ *
+ */
 public class MainScreen extends VBox {
-
 	private Simulator sim;
 	private Label genNum;
 
 	public MainScreen() {
+		// SETUP
 		this.sim = new Simulator(720, 360);
 		this.genNum = new Label("Generation: 0");
 		Button startToggleButton = new Button("Start");
@@ -29,30 +34,30 @@ public class MainScreen extends VBox {
 		VBox speedBox = new VBox(speedSlider, speedLabel);
 		HBox bottomButtonBar = new HBox(10, startToggleButton, stepButton, genNum, resetButton, zoomBox, speedBox);
 
-		bottomButtonBar.setAlignment(Pos.TOP_CENTER);
+		// LAYOUT
 		this.getChildren().addAll(sim, bottomButtonBar);
 		this.setAlignment(Pos.BASELINE_CENTER);
+		bottomButtonBar.setAlignment(Pos.TOP_CENTER);
 		bottomButtonBar.setAlignment(Pos.BASELINE_CENTER);
 		zoomBox.setAlignment(Pos.BASELINE_CENTER);
 		speedBox.setAlignment(Pos.BASELINE_CENTER);
 		speedSlider.setMajorTickUnit(.5);
-		zoomSlider.setMajorTickUnit(.5);
-		zoomSlider.setMinorTickCount(2);
 		speedSlider.setSnapToTicks(true);
 		zoomSlider.setSnapToTicks(true);
-		AnchorPane.setTopAnchor(bottomButtonBar, 10.0);
-		AnchorPane.setBottomAnchor(bottomButtonBar, 10.0);
+		zoomSlider.setMajorTickUnit(.5);
+		zoomSlider.setMinorTickCount(2);
 
+		// FUNCTIONALITY
 		speedSlider.setOnMouseDragged((MouseEvent e) -> {
 			this.sim.changeSpeed(speedSlider.getValue());
 		});
 		resetButton.setOnMouseClicked((MouseEvent e) -> {
-			this.sim.resetSimulation();
 			if (this.sim.isRunning()) {
-				this.sim.toggleSimulation();
-				startToggleButton.setText("Start");
-				stepButton.setDisable(false);
+				this.sim.toggleSimulation(); // end thread
+				startToggleButton.setText("Start"); // change back start button text
+				stepButton.setDisable(false); // enable step button
 			}
+			this.sim.resetSimulation();
 		});
 		stepButton.setOnMouseClicked((MouseEvent e) -> {
 			this.sim.nextStep();
@@ -67,11 +72,19 @@ public class MainScreen extends VBox {
 		});
 	}
 
+	/**
+	 * ends the simulation thread
+	 */
 	public void flushThreads() {
 		if (this.sim.isRunning())
 			this.sim.toggleSimulation();
 	}
 
+	/**
+	 * sets the generation label to given generation number
+	 * 
+	 * @param g generation number
+	 */
 	public void setGen(int g) {
 		this.genNum.setText("Generation: " + g);
 	}
