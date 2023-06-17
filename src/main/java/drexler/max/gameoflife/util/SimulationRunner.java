@@ -1,4 +1,4 @@
-package application.util;
+package drexler.max.gameoflife.util;
 
 /**
  * A runnable class with custom run method used to run the simulation

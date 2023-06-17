@@ -1,6 +1,6 @@
-package application.ui;
+package drexler.max.gameoflife.ui;
 
-import application.util.Simulator;
+import drexler.max.gameoflife.util.Simulator;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;

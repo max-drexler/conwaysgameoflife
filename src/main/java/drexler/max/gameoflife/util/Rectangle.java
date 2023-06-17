@@ -1,4 +1,4 @@
-package application.util;
+package drexler.max.gameoflife.util;
 
 /**
  * Helper class that represents a rectangle using integer values

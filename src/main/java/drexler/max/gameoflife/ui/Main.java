@@ -1,4 +1,4 @@
-package application.ui;
+package drexler.max.gameoflife.ui;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -27,12 +27,12 @@ public class Main extends Application {
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		primaryStage.setResizable(false);
-		primaryStage.getIcons().addAll(new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon16.png")),
-				new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon32.png")),
-				new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon64.png")),
-				new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon128.png")),
-				new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon256.png")),
-				new Image(getClass().getResourceAsStream("/imgs/conwaygameoflifeicon512.png")));
+		primaryStage.getIcons().addAll(new Image(getClass().getClassLoader().getResourceAsStream("conwaygameoflifeicon16.png")),
+				new Image(getClass().getClassLoader().getResourceAsStream("conwaygameoflifeicon32.png")),
+				new Image(getClass().getClassLoader().getResourceAsStream("conwaygameoflifeicon64.png")),
+				new Image(getClass().getClassLoader().getResourceAsStream("conwaygameoflifeicon128.png")),
+				new Image(getClass().getClassLoader().getResourceAsStream("conwaygameoflifeicon256.png")),
+				new Image(getClass().getClassLoader().getResourceAsStream("conwaygameoflifeicon512.png")));
 
 		// ends simulation thread when window is closed
 		primaryStage.setOnCloseRequest((WindowEvent e) -> {

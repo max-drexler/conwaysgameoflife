@@ -1,8 +1,8 @@
-package application.util;
+package drexler.max.gameoflife.util;
 
 import java.util.ArrayList;
 
-import application.ui.Main;
+import drexler.max.gameoflife.ui.Main;
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
