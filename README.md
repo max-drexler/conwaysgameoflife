@@ -2,6 +2,8 @@
 
  Implementation of Conway's game of life using JavaFX.
 
+![image](https://github.com/max-drexler/conwaysgameoflife/assets/72763230/828d7986-13e0-48f0-8448-bb05b70002bf)
+
 ## Running
 
 Clone this repository:
